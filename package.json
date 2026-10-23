@@ -1,0 +1,40 @@
+{
+  "name": "pitchaudit",
+  "version": "0.1.0",
+  "description": "Free, open-source website audits for freelancers: plain-English findings with evidence, your branding, and an email ready to send.",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/YenFus/pitchaudit.git"
+  },
+  "private": true,
+  "engines": {
+    "node": ">=22"
+  },
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "lint": "eslint",
+    "test": "vitest run --exclude 'tests/live*' --exclude tests/diverseSites.test.ts --exclude tests/indieSmallSites.test.ts",
+    "test:watch": "vitest",
+    "test:live": "vitest run"
+  },
+  "dependencies": {
+    "next": "^16.4.2",
+    "react": "19.2.4",
+    "react-dom": "19.2.4"
+  },
+  "devDependencies": {
+    "@tailwindcss/postcss": "^4",
+    "@types/node": "^22",
+    "@types/react": "^19",
+    "@types/react-dom": "^19",
+    "eslint": "^9",
+    "eslint-config-next": "^16.4.2",
+    "tailwindcss": "^4",
+    "typescript": "^5",
+    "vite": "^8.3.0",
+    "vitest": "^5.0.1"
+  }
+}
