@@ -2,7 +2,7 @@ import type { NextConfig } from "next";
 
 const isDev = process.env.NODE_ENV !== "production";
 
-// The page only ever talks to its own origin. Images can be data: URIs (the
+// Runs on localhost over plain http, so no HSTS. The page only ever talks to its own origin. Images can be data: URIs (the
 // Lighthouse screenshot and your uploaded logo). Fonts are self-hosted by
 // next/font. React's dev overlay needs eval, so that's allowed in dev only.
 const csp = [
@@ -20,7 +20,6 @@ const csp = [
 
 const securityHeaders = [
   { key: "Content-Security-Policy", value: csp },
-  { key: "Strict-Transport-Security", value: "max-age=63072000; includeSubDomains" },
   { key: "X-Content-Type-Options", value: "nosniff" },
   { key: "X-Frame-Options", value: "DENY" },
   { key: "Referrer-Policy", value: "strict-origin-when-cross-origin" },
@@ -29,6 +28,8 @@ const securityHeaders = [
 
 const nextConfig: NextConfig = {
   poweredByHeader: false,
+  // Lighthouse and chrome-launcher load files at runtime; leave them unbundled.
+  serverExternalPackages: ["lighthouse", "chrome-launcher"],
   headers() {
     return [{ source: "/:path*", headers: securityHeaders }];
   },

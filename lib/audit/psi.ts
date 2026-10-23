@@ -1,5 +1,5 @@
-// Google PageSpeed Insights fetcher — mobile + desktop in parallel.
-// Free API; optional PSI_API_KEY env var raises the daily quota.
+// Lighthouse result parsing, shared by the local runner (lighthouse.ts) and
+// the optional Google PageSpeed Insights fallback.
 
 export interface PsiOpportunity {
   id: string;
@@ -22,11 +22,6 @@ export interface PsiSummary {
   opportunities: PsiOpportunity[];
 }
 
-export interface PsiResult {
-  mobile: PsiSummary | null;
-  desktop: PsiSummary | null;
-  error?: string;
-}
 
 const PSI_ENDPOINT =
   "https://www.googleapis.com/pagespeedonline/v5/runPagespeed";
@@ -40,7 +35,7 @@ function pct(score: unknown): number | undefined {
   return typeof score === "number" ? Math.round(score * 100) : undefined;
 }
 
-function parseSummary(data: any, strategy: "mobile" | "desktop"): PsiSummary {
+export function parseSummary(data: any, strategy: "mobile" | "desktop"): PsiSummary {
   const lh = data?.lighthouseResult ?? {};
   const cats = lh.categories ?? {};
   const audits = lh.audits ?? {};
@@ -103,50 +98,12 @@ function parseSummary(data: any, strategy: "mobile" | "desktop"): PsiSummary {
   };
 }
 
-let warnedMissingKey = false;
-/** Without PSI_API_KEY Google's shared quota runs out fast and every audit
- *  silently degrades to direct checks. Say so once, loudly, in the logs. */
-function warnMissingPsiKey(): void {
-  if (warnedMissingKey) return;
-  warnedMissingKey = true;
-  console.warn(
-    "[pitchaudit] PageSpeed Insights returned 429 and PSI_API_KEY is not set. " +
-      "Performance/Mobile scores are falling back to direct checks. " +
-      "Set PSI_API_KEY (free) — see README Step 3."
-  );
-}
-
-async function fetchStrategy(
-  url: string,
-  strategy: "mobile" | "desktop"
-): Promise<PsiSummary> {
-  const key = process.env.PSI_API_KEY;
-  const endpoint = `${PSI_ENDPOINT}?url=${encodeURIComponent(
-    url
-  )}&strategy=${strategy}${CATEGORIES}${key ? `&key=${key}` : ""}`;
-  const res = await fetch(endpoint, {
-    signal: AbortSignal.timeout(TIMEOUT_MS),
-  });
-  if (!res.ok) {
-    if (res.status === 429 && !key) warnMissingPsiKey();
-    throw new Error(`PSI ${strategy} responded ${res.status}`);
-  }
-  return parseSummary(await res.json(), strategy);
-}
-
-export async function runPsi(url: string): Promise<PsiResult> {
-  const [mobile, desktop] = await Promise.allSettled([
-    fetchStrategy(url, "mobile"),
-    fetchStrategy(url, "desktop"),
-  ]);
-  const result: PsiResult = {
-    mobile: mobile.status === "fulfilled" ? mobile.value : null,
-    desktop: desktop.status === "fulfilled" ? desktop.value : null,
-  };
-  if (!result.mobile && !result.desktop) {
-    // The reason stays in the server log; clients only learn that it failed.
-    if (mobile.status === "rejected") console.warn("[pitchaudit] PSI failed:", mobile.reason);
-    result.error = "PageSpeed Insights unavailable";
-  }
-  return result;
+/** Optional fallback when local Chrome isn't available: Google's hosted
+ *  PageSpeed Insights API. Only used when PSI_API_KEY is set. Mobile only —
+ *  that's the run the scores use. */
+export async function runPsiMobile(url: string, key: string): Promise<PsiSummary> {
+  const endpoint = `${PSI_ENDPOINT}?url=${encodeURIComponent(url)}&strategy=mobile${CATEGORIES}&key=${encodeURIComponent(key)}`;
+  const res = await fetch(endpoint, { signal: AbortSignal.timeout(TIMEOUT_MS) });
+  if (!res.ok) throw new Error(`PageSpeed Insights responded ${res.status}`);
+  return parseSummary(await res.json(), "mobile");
 }

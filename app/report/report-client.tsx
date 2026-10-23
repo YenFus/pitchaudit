@@ -202,10 +202,6 @@ export function ReportClient() {
   const domain = domainOf(result.finalUrl);
   const criticals = result.issues.filter((i) => i.severity === "critical");
   const rest = result.issues.filter((i) => i.severity !== "critical");
-  const origin = typeof window !== "undefined" ? window.location.origin : "";
-  const encodedUrl = encodeURIComponent(result.finalUrl);
-  const reportUrl = `${origin}/report?url=${encodedUrl}`;
-  const badgeSnippet = `<a href="${reportUrl}"><img src="${origin}/api/badge?url=${encodedUrl}" alt="Website grade by ${config.appName}" /></a>`;
   const auditedOn = new Date(result.fetchedAt).toLocaleDateString(undefined, {
     day: "numeric",
     month: "long",
@@ -226,8 +222,6 @@ export function ReportClient() {
     ...result.issues
       .slice(0, 3)
       .map((i) => `• ${i.pitch ?? `${i.title}: ${i.finding}.`}`),
-    "",
-    `Full report: ${reportUrl}`,
   ].join("\n");
 
   return (
@@ -239,7 +233,6 @@ export function ReportClient() {
         </Link>
         <div className="flex flex-wrap items-center gap-2">
           <CopyButton text={summary} label="Copy summary" />
-          <CopyButton text={reportUrl} label="Copy link" />
           <ToolButton onClick={() => window.print()}>Download PDF</ToolButton>
           <Link href="/" className="pa-btn-ink !px-3.5 !py-1.5 !text-sm">
             New audit
@@ -287,10 +280,10 @@ export function ReportClient() {
           <div className="mb-8 rounded-md border border-warn/40 bg-warn/10 px-4 py-3 text-sm text-ink">
             <p className="font-semibold text-warn">This grade is provisional.</p>
             <p className="mt-0.5 text-ink-2">
-              Google&apos;s Lighthouse didn&apos;t respond for this site, so speed and
-              accessibility couldn&apos;t be measured and are left out of the grade. The
-              findings below come from our own checks of the page. Run it again in a
-              minute for the full measurement.
+              {result.lighthouseError ??
+                "Lighthouse couldn't run, so speed and accessibility couldn't be measured."}{" "}
+              They&apos;re left out of the grade; the findings below come from our own checks
+              of the page.
             </p>
           </div>
         )}
@@ -355,14 +348,14 @@ export function ReportClient() {
           ) : (
             <p>
               Made with{" "}
-              <a href={origin || "/"} className="font-semibold text-ink underline underline-offset-2">
+              <a href={config.repoUrl} className="font-semibold text-ink underline underline-offset-2">
                 {config.appName}
               </a>
               .
             </p>
           )}
           <p className="mt-1 text-xs text-muted">
-            Automated audit of the public page{provisional ? ", without Google Lighthouse" : ""}.
+            Automated audit of the public page{provisional ? ", without Lighthouse" : ""}.
             Findings show the evidence we saw; check anything you plan to quote.
           </p>
         </footer>
@@ -393,27 +386,6 @@ export function ReportClient() {
           </section>
         )}
 
-        {/* A provisional grade isn't fit to publish, so no badge until Lighthouse has run. */}
-        <section className={`pa-noprint ${provisional ? "hidden" : ""}`}>
-          <h2 className="font-serif text-xl font-semibold text-ink">Grade badge</h2>
-          <p className="mt-1 mb-3 text-sm text-muted">
-            Embed this site&apos;s live grade anywhere. It re-checks when the page is loaded.
-          </p>
-          <div className="pa-card flex flex-col gap-3 p-4">
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img
-              src={`/api/badge?url=${encodedUrl}`}
-              alt={`${config.appName} grade badge for ${domain}`}
-              className="h-7 self-start"
-            />
-            <div className="flex items-center gap-2">
-              <code className="min-w-0 flex-1 truncate rounded-sm bg-sunken px-3 py-2 font-mono text-xs text-ink-2">
-                {badgeSnippet}
-              </code>
-              <CopyButton text={badgeSnippet} label="Copy" />
-            </div>
-          </div>
-        </section>
 
         {history.length > 1 && (
           <section className="pa-noprint">

@@ -17,7 +17,7 @@ or whose owner is fine with it being public.
   False positives are worse than misses: a freelancer may quote the finding to a client.
 - Copy rules: plain English, no invented statistics, no fear language, and small
   issues are called small. See the header of `lib/audit/impact-copy.ts`.
-- Keep branding and history in the browser. Nothing a user types should be stored on a server.
+- It runs on the user's machine: keep branding and history in the browser, and don't add calls to outside services.
 
 ## Code of conduct
 

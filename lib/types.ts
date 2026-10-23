@@ -61,8 +61,9 @@ export interface AuditResult {
   /** base64 data URI from PSI final-screenshot (mobile) */
   screenshot?: string;
   vitals?: Vitals;
-  /** Set when PSI failed and scores fall back to direct checks only. */
-  psiError?: string;
+  /** Why Lighthouse didn't run (shown in the report); scores then cover only
+   *  what our own checks could measure. */
+  lighthouseError?: string;
   pageMeta: { title?: string; description?: string };
 }
 

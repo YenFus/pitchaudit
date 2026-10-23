@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import { IBM_Plex_Mono, IBM_Plex_Sans, Newsreader } from "next/font/google";
 import { PrintModeManager } from "@/components/PrintModeManager";
-import { config, siteUrl } from "@/lib/config";
+import { config } from "@/lib/config";
 import "./globals.css";
 
 const plexSans = IBM_Plex_Sans({
@@ -26,24 +26,13 @@ const newsreader = Newsreader({
 const title = `${config.appName} — ${config.tagline}`;
 
 export const metadata: Metadata = {
-  metadataBase: new URL(siteUrl()),
   title: {
     default: title,
     template: `%s · ${config.appName}`,
   },
   description: config.description,
-  openGraph: {
-    title,
-    description: config.description,
-    siteName: config.appName,
-    images: ["/og"],
-  },
-  twitter: {
-    card: "summary_large_image",
-    title,
-    description: config.description,
-    images: ["/og"],
-  },
+  // A local tool: keep it out of search engines if someone exposes it.
+  robots: { index: false, follow: false },
 };
 
 export default function RootLayout({

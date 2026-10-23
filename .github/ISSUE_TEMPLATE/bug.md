@@ -10,4 +10,4 @@ labels: bug
 
 **Steps to reproduce:**
 
-**Browser / OS, or self-hosted setup:**
+**Browser, OS and Node.js version:**

@@ -1,13 +1,13 @@
 // Composes checks + PSI + copy + scoring into a full AuditResult.
-// Shared by the audit and badge API routes. Always returns the FULL
+// Used by the audit API route. Always returns the FULL
 // result — free-tier truncation happens at the route layer.
 
-import { cacheGetAsync, cacheSetAsync } from "../cache";
+import { cacheGet, cacheSet } from "../cache";
 import type { AuditResult, Issue } from "../types";
 import { sortIssues } from "../types";
 import { runChecks } from "./checks";
 import { IMPACT_COPY, psiFallbackCopy } from "./impact-copy";
-import { runPsi } from "./psi";
+import { runLighthouse } from "./lighthouse";
 import { computeScores } from "./score";
 
 import {
@@ -59,14 +59,14 @@ export function normalizeUrl(input: string): string {
 
 
 export async function runAudit(normalizedUrl: string): Promise<AuditResult> {
-  const cached = await cacheGetAsync<AuditResult>(`audit:${normalizedUrl}`);
+  const cached = cacheGet<AuditResult>(`audit:${normalizedUrl}`);
   if (cached) return cached;
 
   await assertSafePublicHost(new URL(normalizedUrl).hostname);
 
   const [checks, psi] = await Promise.all([
     runChecks(normalizedUrl),
-    runPsi(normalizedUrl),
+    runLighthouse(normalizedUrl),
   ]);
 
   const issues: Issue[] = [];
@@ -133,10 +133,10 @@ export async function runAudit(normalizedUrl: string): Promise<AuditResult> {
     issues: sorted,
     screenshot: psi.mobile?.screenshot,
     vitals: psi.mobile ? vitalsSource : undefined,
-    psiError: psi.error,
+    lighthouseError: psi.error,
     pageMeta: checks.pageMeta,
   };
 
-  await cacheSetAsync(`audit:${normalizedUrl}`, result, CACHE_TTL_MS);
+  cacheSet(`audit:${normalizedUrl}`, result, CACHE_TTL_MS);
   return result;
 }

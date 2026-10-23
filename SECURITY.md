@@ -4,31 +4,59 @@
 
 Please **don't open a public issue** for security problems. Use GitHub's
 [private vulnerability reporting](../../security/advisories/new) instead, with
-steps to reproduce. You'll get a reply as soon as possible.
+steps to reproduce.
 
-## How the app protects itself
+## What PitchAudit does on your computer
 
-PitchAudit fetches websites that users name, so most of its attack surface is
-server-side request forgery. The defences, all in `lib/audit/`:
+PitchAudit runs entirely on your machine. When you audit a site it:
 
-- Only `http`/`https`, only ports 80 and 443, and no usernames or passwords in addresses.
-- Private, loopback, link-local and other reserved addresses are refused. The
-  address that is actually dialled is checked at connect time, so DNS
-  rebinding can't slip past the check (`transport.ts`).
-- Every redirect hop is re-checked; at most 5 hops.
-- Responses are capped at 6 MB and every request has a timeout.
-- Audits are rate-limited per client IP.
+- fetches that page (and its robots.txt, sitemap and favicon) from your computer;
+- runs Lighthouse in a hidden, separate copy of Chrome (a fresh profile, not
+  your own: no cookies, logins or extensions), which loads the page like a
+  normal browser visit;
+- keeps the result in memory for an hour, and your branding and recent audits
+  in your browser's local storage.
 
-The app also sends a strict Content-Security-Policy and the usual security
-headers (`next.config.ts`), stores nothing a user types on the server
-(branding lives in the browser), and returns generic errors to clients.
+Nothing is sent to us. Nothing is sent to Google unless you set `PSI_API_KEY`
+and Chrome isn't available.
 
-## Self-hosting
+## How it protects you
 
-- **Rate limiting needs the real client IP.** Forwarding headers can be forged,
-  so they're only trusted on Vercel, or when you set `TRUST_PROXY_HEADERS=true`
-  behind your own reverse proxy (which must set `X-Forwarded-For`/`X-Real-IP`).
-  Without either, all visitors share one rate-limit bucket.
-- Keep `PSI_API_KEY` and the Upstash token server-side. Never put them in a
-  `NEXT_PUBLIC_*` variable.
-- Keep dependencies current (`npm audit --omit=dev`).
+**From other websites in your browser.** Any website you have open could try
+to send requests to `http://localhost:3000`. PitchAudit refuses:
+
+- requests whose `Host` isn't `localhost`/`127.0.0.1`, which defeats DNS
+  rebinding (a malicious domain pointed at your machine);
+- API calls from another site's `Origin`, or marked cross-site by the browser;
+- API calls that aren't JSON, which are the only kind another site can send
+  without your browser asking permission first.
+
+See [lib/local-guard.ts](lib/local-guard.ts).
+
+**From your network.** It listens on `127.0.0.1` only, so other devices on your
+Wi-Fi can't reach it. If you change that, you're responsible for who can.
+
+**From being turned against your own network.** The audit's own requests:
+
+- only go to `http`/`https` addresses on ports 80 and 443, with no
+  usernames or passwords in them;
+- never go to private, loopback or link-local addresses (your router, other
+  machines on your network, cloud metadata services). The address actually
+  dialled is checked at connect time, so DNS tricks can't get around it;
+- re-check every redirect, stop after 5, time out, and stop reading after 6 MB.
+
+See [lib/audit/transport.ts](lib/audit/transport.ts) and
+[lib/audit/ssrf.ts](lib/audit/ssrf.ts).
+
+One honest limit: Lighthouse loads the page in Chrome the way your own browser
+would, including whatever images and scripts the page asks for. That's the
+same exposure as visiting the site yourself, but in an isolated profile.
+
+**In the app itself.** A strict Content-Security-Policy and the usual security
+headers ([next.config.ts](next.config.ts)), React's escaping for everything the
+audited page contains, and spreadsheet-formula protection in CSV exports.
+
+## Keeping it up to date
+
+Run `git pull && npm install` now and then, and `npm audit --omit=dev` to
+check the dependencies.

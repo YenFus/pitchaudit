@@ -5,10 +5,6 @@ import {
   runAudit,
   UnreachableError,
 } from "@/lib/audit/engine";
-import { config } from "@/lib/config";
-import { rateAllowAsync, requestIp } from "@/lib/ratelimit";
-
-export const maxDuration = 60;
 
 export async function POST(req: Request) {
   const body = (await req.json().catch(() => null)) as { url?: string } | null;
@@ -20,14 +16,6 @@ export async function POST(req: Request) {
     return NextResponse.json(
       { error: e instanceof InvalidUrlError ? e.message : "Invalid URL." },
       { status: 400 }
-    );
-  }
-
-  const { n, windowMin } = config.limits.rateLimit;
-  if (!(await rateAllowAsync(requestIp(req), n, windowMin))) {
-    return NextResponse.json(
-      { error: "Too many audits in a short time — try again in a few minutes." },
-      { status: 429 }
     );
   }
 

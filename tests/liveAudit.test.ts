@@ -16,7 +16,7 @@ describe("Live Official Public Website Audit Test", () => {
     console.log("Total Issues Found:", result.issues.length);
     console.log("Top 3 Issues:", result.issues.slice(0, 3).map(i => ({ id: i.id, title: i.title, severity: i.severity, finding: i.finding })));
     console.log("Vitals:", result.vitals);
-    console.log("PSI Error (if any):", result.psiError);
+    console.log("Lighthouse error (if any):", result.lighthouseError);
 
     expect(result.finalUrl).toBeDefined();
     expect(result.overall.score).toBeGreaterThan(0);

@@ -5,7 +5,7 @@ import { useEffect, useState } from "react";
 const STAGES: { at: number; label: string }[] = [
   { at: 0, label: "Reading the page and its headers" },
   { at: 3, label: "Checking tags, mobile setup and links" },
-  { at: 7, label: "Running Google's Lighthouse — the slow part" },
+  { at: 7, label: "Running Lighthouse in Chrome on this computer — the slow part" },
   { at: 22, label: "Writing up the findings" },
 ];
 

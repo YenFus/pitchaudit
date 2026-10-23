@@ -1,7 +1,7 @@
 {
   "name": "pitchaudit",
   "version": "0.1.0",
-  "description": "Free, open-source website audits for freelancers: plain-English findings with evidence, your branding, and an email ready to send.",
+  "description": "A website audit tool that runs on your own computer: plain-English findings with the evidence behind each one, your branding on the report, and an email ready to send.",
   "license": "MIT",
   "repository": {
     "type": "git",
@@ -9,18 +9,21 @@
   },
   "private": true,
   "engines": {
-    "node": ">=22"
+    "node": ">=22.19"
   },
   "scripts": {
-    "dev": "next dev",
+    "dev": "next dev -H 127.0.0.1",
     "build": "next build",
-    "start": "next start",
+    "start": "next start -H 127.0.0.1",
     "lint": "eslint",
     "test": "vitest run --exclude 'tests/live*' --exclude tests/diverseSites.test.ts --exclude tests/indieSmallSites.test.ts",
     "test:watch": "vitest",
-    "test:live": "vitest run"
+    "test:live": "vitest run",
+    "prestart": "next build"
   },
   "dependencies": {
+    "chrome-launcher": "^1.2.2",
+    "lighthouse": "^13.5.0",
     "next": "^16.4.2",
     "react": "19.2.4",
     "react-dom": "19.2.4"

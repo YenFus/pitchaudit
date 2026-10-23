@@ -25,7 +25,7 @@ const CHECKS: { group: string; covers: string }[] = [
   },
   {
     group: "Speed",
-    covers: "Google Lighthouse, server response time, page weight",
+    covers: "Lighthouse (run in your own Chrome), server response time, page weight",
   },
   {
     group: "Conversion basics",
@@ -45,29 +45,30 @@ const LIMITS: string[] = [
   "No backlink, keyword-ranking or traffic numbers. That needs a paid SEO database.",
   "It reads the public page. Anything behind a login, or added only after the page loads, is invisible to it.",
   "Some sites turn automated visitors away (2 of the 35 small-business sites we tried did). You get a clear message instead of a wrong report.",
+  "Speed and accessibility need Google Chrome on this computer. Without it those two are marked “not measured” rather than guessed.",
   "A missing item isn't always a fault. Each finding says how much it matters and shows the evidence, so you can judge.",
 ];
 
 const FAQ: { q: string; a: string }[] = [
   {
+    q: "Where does it run?",
+    a: "Entirely on this computer. The audit fetches the website from here, and Lighthouse runs in a hidden copy of your own Chrome. There's no account and no server of ours; your branding and recent audits are kept in this browser.",
+  },
+  {
+    q: "Does it use AI?",
+    a: "No. Every check is a fixed rule, the explanations are written by hand, and the emails are templates filled in with what the audit found. The same page gives the same report every time.",
+  },
+  {
     q: "How accurate is it?",
-    a: "Each finding shows the exact thing we saw on the page, so you can check it in seconds. Before release we ran 24 of the checks on 33 real small-business sites and compared every result with an independent check. After we fixed the handful of mistakes that turned up, the two agreed every time. Automated audits still get things wrong (for example, reviews loaded by a script look absent), so read the evidence before you send anything.",
-  },
-  {
-    q: "Is it really free?",
-    a: "Yes. Every feature — full reports, your branding, PDF export, bulk audits and comparisons — is free, with no account. The code is MIT-licensed, so you can also run your own copy.",
-  },
-  {
-    q: "Do I need an account?",
-    a: "No. Your branding and recent audits are kept in your browser, not on a server.",
+    a: "Each finding shows the exact thing we saw on the page, so you can check it in seconds. Before release we ran the checks on 33 real small-business sites and compared every result with an independent check. After we fixed the mistakes that turned up, the two agreed every time. Automated audits still get things wrong (for example, reviews loaded by a script look absent), so read the evidence before you send anything.",
   },
   {
     q: "Will my client see PitchAudit?",
     a: "Not if you set up your branding. Reports then carry your name, logo and colours, and you send them as a PDF.",
   },
   {
-    q: "Is there a limit?",
-    a: `To keep the hosted copy fast for everyone, audits are rate-limited to about ${config.limits.rateLimit.n} every ${config.limits.rateLimit.windowMin} minutes per person. If you need more, run your own copy.`,
+    q: "Why is a bulk audit slow?",
+    a: "Lighthouse runs one site at a time so the speed numbers aren't skewed by other runs competing for your computer. Expect around 15–30 seconds per site.",
   },
   {
     q: "Is it OK to email people this way?",
@@ -132,15 +133,15 @@ export default function Home() {
       <nav className="mx-auto flex w-full max-w-6xl items-center justify-between px-5 py-5">
         <Logo size={22} />
         <div className="flex items-center gap-6 text-sm font-medium text-ink-2">
-          <a href="#sample" className="hidden hover:text-ink sm:block">
-            Sample
-          </a>
-          <a href="#open-source" className="hover:text-ink">
-            Open source
-          </a>
-          <a href="#faq" className="hidden hover:text-ink sm:block">
-            FAQ
-          </a>
+          <Link href="/prospects" className="hover:text-ink">
+            Bulk audit
+          </Link>
+          <Link href="/compare" className="hover:text-ink">
+            Compare
+          </Link>
+          <Link href="/branding" className="hidden hover:text-ink sm:block">
+            Branding
+          </Link>
           <a
             href={config.repoUrl}
             className="rounded-md border border-rule-strong px-3 py-1.5 text-ink hover:bg-sunken"
@@ -165,7 +166,7 @@ export default function Home() {
           <div className="mt-8 max-w-xl">
             <AuditForm large />
             <p className="mt-3 text-sm text-muted">
-              Free, no signup, open source.
+              Runs on your computer. Free and open source.
             </p>
           </div>
           <HistoryStrip />
@@ -260,8 +261,8 @@ export default function Home() {
         <div className="grid gap-12 lg:grid-cols-[1.2fr_1fr] lg:gap-16">
           <div>
             <p className="max-w-xl text-ink-2">
-              Google&apos;s Lighthouse for speed and accessibility, plus more than 30
-              checks of our own on the page and its headers.
+              Lighthouse for speed and accessibility, run in your own Chrome, plus more
+              than 30 checks of our own on the page and its headers.
             </p>
             <dl className="mt-6 border-t border-ink">
               {CHECKS.map((c) => (
@@ -285,46 +286,6 @@ export default function Home() {
           </div>
         </div>
       </Section>
-
-      <div className="border-y border-rule bg-sunken/50">
-        <Section
-          id="open-source"
-          eyebrow="Open source"
-          title="Free to use. Free to run yourself."
-        >
-          <div className="grid gap-10 lg:grid-cols-[1.1fr_1fr] lg:gap-16">
-            <div className="space-y-4 text-ink-2">
-              <p>
-                Every feature is free: full reports, your branding, PDF export, bulk audits of
-                up to {config.limits.bulkMax} sites, and competitor comparisons. There&apos;s no
-                account, and nothing you type is stored on a server.
-              </p>
-              <p>
-                The code is MIT-licensed. Run your own copy with a free Google PageSpeed key,
-                change the checks, or rebrand it for your agency.
-              </p>
-              <div className="flex flex-wrap gap-3 pt-2">
-                <a href={config.repoUrl} className="pa-btn-ink">
-                  View on GitHub
-                </a>
-                <a
-                  href={`${config.repoUrl}/issues`}
-                  className="rounded-md border border-rule-strong px-4 py-2.5 text-[0.9375rem] font-semibold text-ink hover:bg-card"
-                >
-                  Report a wrong finding
-                </a>
-              </div>
-            </div>
-            <pre className="pa-card overflow-x-auto p-5 font-mono text-[0.8rem] leading-relaxed text-ink-2">
-{`git clone ${config.repoUrl}
-cd pitchaudit
-npm install
-echo "PSI_API_KEY=your-free-key" > .env.local
-npm run dev`}
-            </pre>
-          </div>
-        </Section>
-      </div>
 
       <Section id="faq" eyebrow="Questions" title="Straight answers.">
         <div className="max-w-3xl border-t border-ink">
@@ -356,12 +317,9 @@ npm run dev`}
             <Link href="/branding" className="hover:text-ink">
               Branding
             </Link>
-            <Link href="/privacy" className="hover:text-ink">
-              Privacy
-            </Link>
-            <Link href="/terms" className="hover:text-ink">
-              Terms
-            </Link>
+            <a href={`${config.repoUrl}/issues`} className="hover:text-ink">
+              Report a wrong finding
+            </a>
           </nav>
           <p className="text-xs text-faint">© {new Date().getFullYear()} {config.appName}</p>
         </div>
