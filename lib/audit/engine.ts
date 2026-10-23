@@ -1,6 +1,5 @@
-// Composes checks + PSI + copy + scoring into a full AuditResult.
-// Used by the audit API route. Always returns the FULL
-// result — free-tier truncation happens at the route layer.
+// Composes direct checks + Lighthouse + copy + scoring into a full
+// AuditResult. Used by the audit API route.
 
 import { cacheGet, cacheSet } from "../cache";
 import type { AuditResult, Issue } from "../types";
